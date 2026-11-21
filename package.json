@@ -1,0 +1,16 @@
+{
+  "name": "webmaple",
+  "version": "1.0.0",
+  "description": "MapleStory M Auto Monitor - static HTML + Node API (MySQL / TiDB Cloud)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "schema": "node server.js --schema"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mysql2": "^3.11.0"
+  }
+}

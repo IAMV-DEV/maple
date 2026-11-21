@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MapleStory M Auto Monitor</title>
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./dist/css/style.css">
+  <script src="./plugins/sweetalert2/sweetalert2.all.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .table-container { width:100%; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:8px; box-shadow:0 4px 6px -1px rgba(0,0,0,.1); }
+    .table-section table { width:100%; border-collapse:collapse; white-space:nowrap; font-size:13px; }
+    .table-section th, .table-section td { padding:8px 10px !important; vertical-align:middle; }
+    .section-title { margin-bottom:12px; }
+    .filter-input { padding:6px 12px; border-radius:6px; background:#1e293b; color:#fff; border:1px solid #334155; height:38px; }
+    #errorBar { display:none; margin:8px 16px; padding:8px 12px; border-radius:8px; background:#7f1d1d; color:#fff; font-size:13px; }
+    @media (max-width:1360px) { .dashboard-cards { gap:10px; } .dashboard-cards .card { padding:12px; } }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-left">
+      <div class="logo">
+        <i data-lucide="sword" class="logo-icon"></i>
+        <span class="logo-text">MapleStory M</span>
+        <span class="sub-text">Auto Monitor</span>
+        <button type="button" class="btn btn-icon" id="btnResetAll" style="height:30px;width:30px;color:orange;" title="Reset บัญชีทั้งหมด">
+          <i data-lucide="rotate-cw"></i>
+        </button>
+      </div>
+      <div class="status-badges">
+        <div class="status-badge green-badge"><span class="dot green"></span> <span id="sp_online">0</span> online</div>
+        <span class="update-time" id="sp_timer">--:--:--</span>
+      </div>
+    </div>
+  </header>
+  <div id="errorBar"></div>
+
+  <!-- DASHBOARD CARDS -->
+  <section class="dashboard-cards">
+    <div class="card">
+      <div class="card-icon blue"><i data-lucide="users"></i></div>
+      <div class="card-info"><h2 id="sp_account">0</h2><p class="title">บัญชีทั้งหมด</p><p class="desc">all characters</p></div>
+    </div>
+    <div class="card">
+      <div class="card-icon green"><i data-lucide="wifi"></i></div>
+      <div class="card-info"><h2 id="sp_onlinex">0</h2><p class="title">Online</p><p class="desc">กำลังออนไลน์</p></div>
+    </div>
+    <div class="card">
+      <div class="card-icon yellow"><i data-lucide="package"></i></div>
+      <div class="card-info"><h2 id="sp_bag">0</h2><p class="title">% Battery</p><p class="desc">ค่าพลังงานมือถือ</p></div>
+    </div>
+    <div class="card">
+      <div class="card-icon purple"><i data-lucide="swords"></i></div>
+      <div class="card-info"><h2 id="sp_party">0</h2><p class="title">Party Complete</p><p class="desc">ดำเนินการปาร์ตี้สำเร็จ</p></div>
+    </div>
+    <div class="card">
+      <div class="card-icon red"><i data-lucide="trending-up"></i></div>
+      <div class="card-info"><h2 class="text-red" id="sp_redmeso">0</h2><p class="title">เงินแดง (M)</p><p class="desc">red money total</p></div>
+    </div>
+    <div class="card">
+      <div class="card-icon gold"><i data-lucide="coins"></i></div>
+      <div class="card-info"><h2 class="text-yellow" id="sp_meso">0</h2><p class="title">ทองคำ (M)</p><p class="desc">gold money total</p></div>
+    </div>
+  </section>
+
+  <!-- TABLE SECTION -->
+  <section class="table-section">
+    <div class="section-title" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;width:100%;">
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <h3 style="margin:0;white-space:nowrap;">ALL CHARACTERS</h3>
+        <span class="count-badge" style="white-space:nowrap;flex-shrink:0;"><span id="sp_player">0</span> ตัวละคร</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:1;min-width:280px;justify-content:flex-end;">
+        <select id="ddl_rpt_type" class="filter-input" style="flex:1;min-width:120px;">
+          <option value="">แสดงทั้งหมด</option>
+          <option value="1">ออนไลน์</option>
+          <option value="0">ออฟไลน์</option>
+        </select>
+        <input type="text" id="txt_search" class="filter-input" placeholder="ค้นหาตัวละคร, ทีม, ชื่อ..." style="flex:2;min-width:150px;">
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr style="text-align:center;">
+            <th style="text-align:left;">🤖 ตัวละคร</th>
+            <th>Action</th>
+            <th>📆 อัพเดทเมื่อ</th>
+            <th><i data-lucide="wifi" class="th-icon"></i> ONLINE</th>
+            <th>⚔️ Party</th>
+            <th class="text-red">🔅 RED MESO</th>
+            <th class="text-yellow">💰 MESO</th>
+            <th>TRADE</th>
+            <th>🦖 DI</th>
+            <th>🗼 MU</th>
+            <th>🎁 GIFT</th>
+            <th>💼 กระเป๋า</th>
+            <th>🤺 AUTO BATTLE</th>
+            <th>🔱 พลังต่อสู้</th>
+            <th>⭐ SF MAP</th>
+          </tr>
+        </thead>
+        <tbody id="characterTableBody" style="text-align:center;"></tbody>
+      </table>
+    </div>
+  </section>
+
+<script>
+(function () {
+  'use strict';
+  var REFRESH_MS = 3000;
+  var allRows = [];
+  var timer = null;
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ป้องกัน XSS: ชื่อตัวละคร/อีเมลมาจากฐานข้อมูล
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function on(v) { return v === 1 || v === true || v === '1'; }
+  function setText(id, v) { var el = $(id); if (el) el.textContent = v; }
+  function icons() { if (window.lucide) window.lucide.createIcons(); }
+
+  var CLEAR = '<span class="badge clear"><span class="dot green"></span> เคลียร์</span>';
+  function clearBadge(v) { return on(v) ? CLEAR : '-'; }
+
+  // ---------- วาดตาราง ----------
+  function filtered() {
+    var q = ($('txt_search').value || '').trim().toLowerCase();
+    var type = $('ddl_rpt_type').value;
+    return allRows.filter(function (r) {
+      if (type === '1' && !on(r.online_status)) return false;
+      if (type === '0' && on(r.online_status)) return false;
+      if (!q) return true;
+      return [r.player, r.team, r.name].some(function (x) { return String(x || '').toLowerCase().indexOf(q) > -1; });
+    });
+  }
+
+  function render() {
+    var rows = filtered();
+    setText('sp_player', rows.length);
+    var html = rows.map(function (r) {
+      var player = esc(r.player || '-'), team = esc(r.team || ''), name = esc(r.name || '-');
+      var job = esc(String(r.jobs || 'default').trim());
+      var online = on(r.online_status);
+      var battle = on(r.party_statusx)
+        ? '<span class="badge active"><span></span>🚴Runing..</span>'
+        : (on(r.party_status) ? '🌟' : '');
+      var min = Number(r.auto_battle || 0) || 0;
+      var width = Math.min(Math.round(min / 360 * 100), 100);
+      var bar = min > 120 ? 'green-bar' : 'yellow-bar';
+      var red = Math.floor(Number(r.red_money || 0) / 1e6).toLocaleString();
+      var gold = Math.floor(Number(r.gold_money || 0) / 1e6).toLocaleString();
+      var power = Number(r.power || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+
+      return '<tr>' +
+        '<td class="text-left"><div class="user-profile">' +
+          '<div class="avatar avatar-blue"><img src="./img/' + job + '.png" alt="' + job + '" class="job-avatar-img" onerror="this.onerror=null;this.src=\'./img/default.png\';">' +
+          '<span class="cell-online-dot">' + (online ? '<span class="online-indicator"></span>' : '') + '</span></div>' +
+          '<div class="user-info"><div class="name">🏠 ' + team + ' 🥷 ' + player + '</div><div class="email">' + name + '</div></div>' +
+        '</div></td>' +
+        '<td><button type="button" class="btn btn-icon btn-reset-row" data-player="' + player + '" data-team="' + team + '" title="Reset ตัวละครนี้"><i data-lucide="history"></i></button></td>' +
+        '<td class="time-orange">' + esc(r.act_date || '-') + '</td>' +
+        '<td>' + (online ? '<i data-lucide="wifi" class="icon-green"></i>' : '-') + '</td>' +
+        '<td>' + battle + '</td>' +
+        '<td class="text-red font-bold">' + red + ' M</td>' +
+        '<td class="text-yellow font-bold">' + gold + ' M</td>' +
+        '<td>' + clearBadge(r.trade) + '</td>' +
+        '<td>' + clearBadge(r.dun_di) + '</td>' +
+        '<td>' + clearBadge(r.dun_mu) + '</td>' +
+        '<td>' + clearBadge(r.open_box) + '</td>' +
+        '<td>' + clearBadge(r.bag_status) + '</td>' +
+        '<td><div class="progress-container"><div class="progress-bar ' + bar + '" style="width:' + width + '%;"></div><span class="auto-val">' + min + '</span></div></td>' +
+        '<td><span style="color:yellow;">' + (power !== '0' ? power : '-') + '</span></td>' +
+        '<td><span class="sf-badge" style="font-size:14px;">' + esc(r.sf_map || '-') + ' S</span></td>' +
+      '</tr>';
+    }).join('');
+    $('characterTableBody').innerHTML = html;
+    icons();
+  }
+
+  // ---------- ดึงข้อมูล ----------
+  function showError(msg) {
+    var bar = $('errorBar');
+    if (msg) { bar.textContent = msg; bar.style.display = 'block'; } else { bar.style.display = 'none'; }
+  }
+
+  function load() {
+    fetch('/api/accounts', { cache: 'no-store' })
+      .then(function (res) { return res.json().then(function (j) { if (!res.ok || !j.success) throw new Error(j.message || res.status); return j; }); })
+      .then(function (res) {
+        showError('');
+        setText('sp_timer', new Date().toTimeString().split(' ')[0]);
+        var s = res.summary || {};
+        setText('sp_online', s.online || 0);
+        setText('sp_onlinex', s.online || 0);
+        setText('sp_account', s.total || 0);
+        setText('sp_bag', s.bag || 0);
+        setText('sp_party', s.party || 0);
+        setText('sp_redmeso', s.red_meso || 0);
+        setText('sp_meso', s.gold_meso || 0);
+        allRows = res.data || [];
+        render();
+      })
+      .catch(function (e) { showError('โหลดข้อมูลไม่สำเร็จ: ' + e.message); })
+      .then(function () { clearTimeout(timer); timer = setTimeout(load, REFRESH_MS); });
+  }
+
+  // ---------- Reset ----------
+  function postReset(body) {
+    var headers = { 'Content-Type': 'application/json' };
+    var key = sessionStorage.getItem('adminKey');
+    if (key) headers['x-admin-key'] = key;
+    return fetch('/api/reset', { method: 'POST', headers: headers, body: JSON.stringify(body) })
+      .then(function (res) {
+        if (res.status === 401) {
+          return Swal.fire({ title: 'ใส่รหัสผู้ดูแล', input: 'password', showCancelButton: true }).then(function (r) {
+            if (!r.isConfirmed || !r.value) return { success: false, message: 'ยกเลิก' };
+            sessionStorage.setItem('adminKey', r.value);
+            return postReset(body);
+          });
+        }
+        return res.json();
+      });
+  }
+
+  function doReset(body, okTitle, okText) {
+    postReset(body).then(function (res) {
+      if (res.success) { Swal.fire(okTitle, okText, 'success'); load(); }
+      else Swal.fire('Error!', res.message || 'เกิดข้อผิดพลาด', 'error');
+    }).catch(function () { Swal.fire('Error!', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error'); });
+  }
+
+  $('characterTableBody').addEventListener('click', function (e) {
+    var btn = e.target.closest('.btn-reset-row');
+    if (!btn) return;
+    var player = btn.getAttribute('data-player'), team = btn.getAttribute('data-team');
+    Swal.fire({
+      title: 'ยืนยันการ Reset?',
+      text: 'Reset ข้อมูลของตัวละคร ' + player + ' (ทีม ' + team + ') ใช่หรือไม่?',
+      icon: 'warning', showCancelButton: true,
+      confirmButtonColor: '#10b981', cancelButtonColor: '#ef4444',
+      confirmButtonText: 'ยืนยัน', cancelButtonText: 'ยกเลิก'
+    }).then(function (r) { if (r.isConfirmed) doReset({ player: player, team: team }, 'สำเร็จ!', 'Reset ข้อมูลเรียบร้อยแล้ว'); });
+  });
+
+  $('btnResetAll').addEventListener('click', function (e) {
+    e.preventDefault();
+    Swal.fire({
+      title: 'กรุณายืนยัน !', text: 'คุณต้องการ Reset Data ทั้งหมดเพื่อเริ่มใหม่ ใช่หรือไม่?',
+      icon: 'warning', showCancelButton: true,
+      confirmButtonColor: '#3085d6', cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, Reset All!', cancelButtonText: 'Cancel'
+    }).then(function (r) { if (r.isConfirmed) doReset({ action: 'reset_all' }, 'Complete!', 'อัปเดตรายการเรียบร้อย'); });
+  });
+
+  $('txt_search').addEventListener('input', render);
+  $('ddl_rpt_type').addEventListener('change', render);
+
+  document.addEventListener('DOMContentLoaded', function () { icons(); load(); });
+})();
+</script>
+</body>
+</html>
