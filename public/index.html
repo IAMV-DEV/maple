@@ -15,7 +15,42 @@
     .section-title { margin-bottom:12px; }
     .filter-input { padding:6px 12px; border-radius:6px; background:#1e293b; color:#fff; border:1px solid #334155; height:38px; }
     #errorBar { display:none; margin:8px 16px; padding:8px 12px; border-radius:8px; background:#7f1d1d; color:#fff; font-size:13px; }
-    @media (max-width:1360px) { .dashboard-cards { gap:10px; } .dashboard-cards .card { padding:12px; } }
+    @media (max-width:1440px) { .dashboard-cards { gap:10px; } .dashboard-cards .card { padding:12px; } }
+
+    /* ===== จอ 1360x768 (และจอเล็กกว่า 1440px): บีบตารางให้แสดงครบทุกคอลัมน์โดยไม่ต้องเลื่อนซ้าย-ขวา ===== */
+    @media (max-width:1440px) {
+      body { padding:10px 12px; }
+      .navbar { padding-bottom:12px; }
+      .dashboard-cards { margin-bottom:14px; }
+      .dashboard-cards .card { padding:10px 12px; }
+      .card-info h2 { font-size:20px; }
+      .table-section { padding:10px; }
+      .table-container { box-shadow:none; }
+      .table-section table { font-size:12px; }
+      .table-section th { font-size:11px; padding:6px 4px !important; letter-spacing:0; }
+      .table-section td { padding:5px 4px !important; }
+      .th-icon { width:11px; height:11px; }
+
+      /* คอลัมน์ตัวละคร */
+      .user-profile { gap:8px; }
+      .avatar { width:34px; height:34px; min-width:34px; border-width:1px; }
+      .online-indicator { width:9px; height:9px; border-width:1px; }
+      .user-info .name { font-size:12px; }
+      .user-info .email { font-size:12px; margin-top:0; }
+
+      /* badge เคลียร์ / กำลังรัน */
+      .badge { padding:2px 6px; gap:4px; font-size:10px; }
+      .badge .dot { width:5px; height:5px; }
+      .btn-reset-row { padding:3px; }
+      .btn-reset-row svg, .btn-reset-row i { width:14px; height:14px; }
+      .time-orange { font-size:11px; }
+
+      /* AUTO BATTLE */
+      .progress-container { gap:5px; width:74px; }
+      .progress-container span { font-size:12px; }
+      .progress-bar { min-width:4px; }
+      .sf-badge { font-size:11px !important; padding:1px 5px; }
+    }
   </style>
 </head>
 <body>
@@ -227,10 +262,7 @@
             return postReset(body);
           });
         }
-        return res.text().then(function (t) {
-          try { return JSON.parse(t); }
-          catch (e) { return { success: false, message: 'เซิร์ฟเวอร์ตอบกลับผิดรูปแบบ (HTTP ' + res.status + ')' }; }
-        });
+        return res.json();
       });
   }
 
@@ -238,7 +270,7 @@
     postReset(body).then(function (res) {
       if (res.success) { Swal.fire(okTitle, okText, 'success'); load(); }
       else Swal.fire('Error!', res.message || 'เกิดข้อผิดพลาด', 'error');
-    }).catch(function (e) { Swal.fire('Error!', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้: ' + (e && e.message ? e.message : e), 'error'); });
+    }).catch(function () { Swal.fire('Error!', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้', 'error'); });
   }
 
   $('characterTableBody').addEventListener('click', function (e) {
