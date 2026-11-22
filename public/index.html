@@ -176,12 +176,7 @@
       if (!q) return true;
       return [r.player, r.team, r.name].some(function (x) { return String(x || '').toLowerCase().indexOf(q) > -1; });
     });
-    // เรียงตาม act_date (อัพเดทล่าสุดอยู่บนสุด) ; ค่าว่างอยู่ล่างสุด
-    return rows.sort(function (a, b) {
-      var d = (Number(b.act_ts) || 0) - (Number(a.act_ts) || 0);
-      if (d) return d;
-      return String(b.act_date || '').localeCompare(String(a.act_date || ''));
-    });
+    return rows; // ลำดับมาจาก server (ORDER BY act_date DESC)
   }
 
   function render() {
