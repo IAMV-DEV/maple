@@ -19,8 +19,12 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 5,
   dateStrings: false,
+  timezone: 'Z', // ค่าวันที่ใน DB เป็นเวลา UTC (NOW() ของ TiDB Cloud) -> อ่านเป็น UTC แล้วค่อยแปลงเป็นเวลาไทยตอนแสดงผล
   decimalNumbers: true,
 });
+
+// ล็อก session เป็น UTC ให้ตรงกับที่บอต (main.py) เขียนด้วย NOW() เพื่อให้อ่านค่าได้เหมือนกันทุกเครื่อง
+pool.pool.on('connection', (conn) => conn.query("SET time_zone = '+00:00'"));
 
 // ---------------------------------------------------------------------------
 // SQL ที่ใช้แทน Stored Procedure เดิม (TiDB/MySQL บน TiDB Cloud ไม่รองรับ stored procedure)
@@ -57,7 +61,8 @@ function pick(row, keys) {
 }
 
 function pad(n) { return String(n).padStart(2, '0'); }
-function hms(d) { return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
+const BKK_TIME = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+function hms(d) { return BKK_TIME.format(d); } // แสดงเวลาไทยเสมอ
 const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
 const flag = (v) => (v === 1 || v === true || v === '1' ? 1 : 0);
 
