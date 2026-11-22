@@ -26,7 +26,7 @@ const pool = mysql.createPool({
 // SQL ที่ใช้แทน Stored Procedure เดิม (TiDB/MySQL บน TiDB Cloud ไม่รองรับ stored procedure)
 // ถ้าข้อมูลจริงอยู่คนละตาราง/ต้อง JOIN ให้แก้ที่ ACCOUNTS_SQL บรรทัดเดียว
 // ---------------------------------------------------------------------------
-const ACCOUNTS_SQL = 'SELECT * FROM accounts WHERE active = 1';
+const ACCOUNTS_SQL = 'SELECT * FROM accounts WHERE active = 1 ORDER BY act_date DESC'; // อัพเดทล่าสุดอยู่บนสุด (NULL อยู่ล่างสุด)
 
 // ชื่อคอลัมน์ที่เป็นไปได้ (เลือกอันแรกที่มีอยู่จริงในตาราง) -> ชื่อมาตรฐานที่หน้าเว็บใช้
 const ALIASES = {
